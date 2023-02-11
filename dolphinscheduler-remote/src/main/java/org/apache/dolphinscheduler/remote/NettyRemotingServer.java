@@ -205,6 +205,10 @@ public class NettyRemotingServer {
     public ExecutorService getDefaultExecutor() {
         return defaultExecutor;
     }
+    
+    public Boolean getIsStarted() {
+        return isStarted.get();
+    }
 
     public void close() {
         if (isStarted.compareAndSet(true, false)) {
