@@ -79,7 +79,20 @@ public class MasterRPCServer implements AutoCloseable {
     @Autowired
     private TaskExecuteStartProcessor taskExecuteStartProcessor;
 
+        
+    /**
+     * check nettyRemotingServer running status.  Turn off the server if it's already started
+     */
+    private void preStartCheckServer() {
+        if (this.nettyRemotingServer != null && this.nettyRemotingServer.getIsStarted()) {
+            this.nettyRemotingServer.close();
+        }
+    }
+    
     public void start() {
+        // check server
+        log.info("Check Master RPC Server status...");
+        preStartCheckServer();
         log.info("Starting Master RPC Server...");
         // init remoting server
         NettyServerConfig serverConfig = new NettyServerConfig();
