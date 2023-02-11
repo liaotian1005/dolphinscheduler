@@ -113,11 +113,23 @@ public class NettyRemotingServer {
             this.workGroup = new NioEventLoopGroup(serverConfig.getWorkerThread(), workerThreadFactory);
         }
     }
+    
+    /**
+     * check nettyRemotingServer running status.  Turn off the server if it's already started
+     */
+    private void preStartCheckServer() {
+        if (this.nettyRemotingServer!=null) {
+            this.nettyRemotingServer.close();
+        }
+    }
 
     /**
      * server start
      */
     public void start() {
+        // check server
+        preStartCheckServer();
+        
         if (isStarted.compareAndSet(false, true)) {
             this.serverBootstrap
                     .group(this.bossGroup, this.workGroup)
