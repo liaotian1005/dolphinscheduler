@@ -53,6 +53,11 @@ import io.netty.handler.timeout.IdleStateHandler;
  */
 @Slf4j
 public class NettyRemotingServer {
+    
+    /**
+     * ChannelFuture
+     */
+    private ChannelFuture future;
 
     /**
      * server bootstrap
@@ -114,22 +119,12 @@ public class NettyRemotingServer {
         }
     }
     
-    /**
-     * check nettyRemotingServer running status.  Turn off the server if it's already started
-     */
-    private void preStartCheckServer() {
-        if (this.nettyRemotingServer!=null) {
-            this.nettyRemotingServer.close();
-        }
-    }
+    
 
     /**
      * server start
      */
     public void start() {
-        // check server
-        preStartCheckServer();
-        
         if (isStarted.compareAndSet(false, true)) {
             this.serverBootstrap
                     .group(this.bossGroup, this.workGroup)
@@ -150,7 +145,7 @@ public class NettyRemotingServer {
 
             ChannelFuture future;
             try {
-                future = serverBootstrap.bind(serverConfig.getListenPort()).sync();
+                this.future = serverBootstrap.bind(serverConfig.getListenPort()).sync();
             } catch (Exception e) {
                 log.error("NettyRemotingServer bind fail {}, exit", e.getMessage(), e);
                 throw new RemoteException(String.format(NETTY_BIND_FAILURE_MSG, serverConfig.getListenPort()));
@@ -214,6 +209,9 @@ public class NettyRemotingServer {
     public void close() {
         if (isStarted.compareAndSet(true, false)) {
             try {
+                if (future != null) {
+                    this.future.channel().closeFuture();
+                }
                 if (bossGroup != null) {
                     this.bossGroup.shutdownGracefully();
                 }
